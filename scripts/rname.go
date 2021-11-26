@@ -9,7 +9,8 @@ import (
 )
 
 func main() {
-	dir, err := ioutil.ReadDir("./dist/js")
+	path := "/usr/share/nginx/html/js/"
+	dir, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -25,13 +26,20 @@ func main() {
 		}
 
 		if strings.Contains(v.Name(), "app.") && strings.Contains(v.Name(), ".js") {
-			file, err := ioutil.ReadFile("./dist/js/" + v.Name())
+			file, err := ioutil.ReadFile(path + v.Name())
 			if err != nil {
 				log.Fatalln(err)
 			}
 
 			all := bytes.ReplaceAll(file, []byte("http://192.168.88.99:6061"), []byte(ar))
-			ioutil.WriteFile("./dist/js/"+v.Name(), all, 00666)
+			ioutil.WriteFile(path+v.Name(), all, 00666)
+		}
+	}
+
+	for {
+		select {
+		case <-time.After(time.Sec):
+
 		}
 	}
 }

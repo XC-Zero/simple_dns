@@ -11,29 +11,20 @@ import ElementUI from 'element-ui';
 Vue.use(ElementUI);
 
 const http = axios.create({
-  baseURL: '/api',
+    baseURL:"http://192.168.88.99:6061",
   timeout: 8000,
 })
-http.interceptors.response.use(
-    response => {  // 该处为后端返回整个内容
-        return response  // 该处将结果返回，下一步可用于前端页面渲染用
+http.interceptors.request.use(
+    request => {  // 该处为后端返回整个内容
+      console.log(request.url)
+      return request  // 该处将结果返回，下一步可用于前端页面渲染用
     },
-    error => {
-      console.log(error.response)
-      if (error.response.status===401){
-        router.push({path: '/'});
-        Cookies.remove("token")
-      }else
-      {
-        return Promise.reject(error)
-      }
-    }
 )
+
 
 Vue.prototype.$http = http
 Vue.prototype.$Cookies=Cookies
 Vue.config.productionTip = false
-
 new Vue({
   router,
   render: h => h(App),

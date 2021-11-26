@@ -1,0 +1,11 @@
+version: "3"
+services:
+  simple-dns:
+    image: simple-dns:1.0.1
+    restart: always
+    ports:
+      - "9537:9537"
+    environment:
+      ADDR: "http://192.168.88.99:6061"
+    tty: true
+    command: /bin/sh -c "nginx && /usr/share/nginx/html/rname"

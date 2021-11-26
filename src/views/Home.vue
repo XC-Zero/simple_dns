@@ -57,7 +57,7 @@
       </el-aside>
       <el-container>
         <el-header style="height: 70px;display: flex;flex-direction: row-reverse" >
-          <v-avatar width="300" height="70 " tile="false">
+          <v-avatar width="300" height="70 " :tile="false">
             <img
                 :src="require('/src/assets/logo2.png')"
                 alt="simple-dns"
@@ -115,13 +115,16 @@ export default {
 
   watch: {//使用watch 监听$router的变化
     $route(to, from) {
-      //如果to索引大于from索引,判断为前进状态,反之则为后退状态
       if (to.meta.index > from.meta.index) {
-        //设置动画名称
-        this.transitionName = 'slide-left';
+        this.transitionName = 'slide-up';
       } else {
-        this.transitionName = 'slide-right';
+        this.transitionName = 'slide-down';
       }
+    }
+  },
+  mounted() {
+    if (!(this.$Cookies.get("token"))){
+      this.$router.push({path:"/"})
     }
   }
 }
@@ -173,31 +176,31 @@ body > .el-container {
   position: absolute;
 }
 
-.slide-right-enter-active,
-.slide-right-leave-active,
-.slide-left-enter-active,
-.slide-left-leave-active {
+.slide-down-enter-active,
+.slide-down-leave-active,
+.slide-up-enter-active,
+.slide-up-leave-active {
   will-change: transform;
   transition: all 250ms;
   position: absolute;
 }
 
-.slide-right-enter {
+.slide-down-enter {
   opacity: 0;
   transform: translate3d(0, -100%, 0);
 }
 
-.slide-right-leave-active {
+.slide-down-leave-active {
   opacity: 0;
   transform: translate3d(0, 100%, 0);
 }
 
-.slide-left-enter {
+.slide-up-enter {
   opacity: 0;
   transform: translate3d(0, 100%, 0);
 }
 
-.slide-left-leave-active {
+.slide-up-leave-active {
   opacity: 0;
   transform: translate3d(0, -100%, 0);
 }

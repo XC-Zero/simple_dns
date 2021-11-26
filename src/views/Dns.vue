@@ -175,6 +175,9 @@
 </template>
 
 <script>
+import router from "../router";
+import Cookies from "js-cookie";
+
 export default {
   name: "Dns",
   data() {
@@ -288,10 +291,14 @@ export default {
               type: 'success',
             });
           }).catch(err => {
-            this.$message({
-              message: err.response.data,
-              type: 'error',
-            });
+            if (err.response.status===401){
+              router.push({path: '/'});
+              Cookies.remove("token")
+              this.$message({
+                message: err.response.data,
+                type: 'error',
+              });
+            }
           })
         }
         this.getAllDNS()
@@ -319,10 +326,14 @@ export default {
             type: 'success',
           });
         }).catch(err => {
-          this.$message({
-            message: err.response.data,
-            type: 'error',
-          });
+          if (err.response.status===401){
+            router.push({path: '/'});
+            Cookies.remove("token")
+            this.$message({
+              message: err.response.data,
+              type: 'error',
+            });
+          }
         })
         this.dialogVisible = false
         that.desserts = []
@@ -362,10 +373,14 @@ export default {
           type: 'success',
         });
       }).catch(err => {
-        this.$message({
-          message: err.response.data,
-          type: 'error',
-        });
+        if (err.response.status===401){
+          router.push({path: '/'});
+          Cookies.remove("token")
+          this.$message({
+            message: err.response.data,
+            type: 'error',
+          });
+        }
       })
       that.selected=[]
       that.editVisible=false
@@ -388,10 +403,14 @@ export default {
         that.desserts = temp
         that.selected = []
       }).catch(err => {
-        this.$message({
-          message: err.response.data,
-          type: 'error',
-        });
+        if (err.response.status===401){
+          router.push({path: '/'});
+          Cookies.remove("token")
+          this.$message({
+            message: err.response.data,
+            type: 'error',
+          });
+        }
       })
     }
   },

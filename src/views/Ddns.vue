@@ -149,21 +149,35 @@
         删除
       </v-btn>
     </v-row>
-    <v-data-table
-        v-model="selected"
-        :headers="headers"
-        :items="desserts"
-        :items-per-page="5"
-        class="elevation-1"
-        show-select
-        item-key="id"
+    <v-card>
+      <v-card-title style="width: 20%">
+        <v-text-field
 
-    ></v-data-table>
-
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+        ></v-text-field>
+      </v-card-title>
+      <v-data-table
+          v-model="selected"
+          :headers="headers"
+          :items="desserts"
+          :items-per-page="5"
+          class="elevation-1"
+          show-select
+          item-key="id"
+          :search="search"
+      ></v-data-table>
+    </v-card>
   </div>
 </template>
 
 <script>
+import router from "../router";
+import Cookies from "js-cookie";
+
 export default {
   name: "Dns",
   data() {
@@ -207,7 +221,7 @@ export default {
         "OPT"
         ,
       ],
-
+      search:"",
       editVisible: false,
       dialogVisible: false,
       selected: [],
@@ -215,7 +229,8 @@ export default {
         {
           text: "ID",
           align: 'start',
-          sortable: false,
+          sortable: true,
+          filterable: false,
           value: 'id',
         },
         {text: '域名', value: 'domain'},
@@ -243,48 +258,52 @@ export default {
       ttlRules: [
         v => !!v || 'TTL为空',
       ],
-      newDNSData: {},
+      newDNSData: {
+        ttl:10,
+        query_type:"A"
+      },
     }
   },
   methods: {
 
     deleteDNS() {
-      this.$alert('确定删除吗？', '提示', {
-        confirmButtonText: 'Delete',
-        type: 'error',
-        cancelButtonText:'Cancel',
-        callback: action => {
-          this.$message({
-            type: 'info',
-            message: `action: ${ action }`
-          });
-        }
-      });
       let that = this
-      for (let i = 0; i < this.selected.length; i++) {
-        this.$http({
-          url: '/api/del',
-          method: 'post',
-          headers: {
-            'Content-Type': 'application/json',
-            'token': that.$Cookies.get("token")
-          },
-          data: {
-            "id": that.selected[i].id
-          }
-        }).then(() => {
-          this.$message({
-            message: '删除 ' + that.selected[i].id + ' 成功',
-            type: 'success',
-          });
-        }).catch(err => {
-          this.$message({
-            message: err.response.data,
-            type: 'error',
-          });
-        })
-      }
-      this.getAllDNS()
+
+      this.$confirm('确定删除吗？', '提示', {
+        confirmButtonText: 'Delete',
+        cancelButtonText:'Cancel',
+        type: 'warning',
+      }).then(()=>{
+        for (let i = 0; i < this.selected.length; i++) {
+          this.$http({
+            url: '/api/del',
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+              'token': that.$Cookies.get("token")
+            },
+            data: {
+              "id": that.selected[i].id
+            }
+          }).then(() => {
+            this.$message({
+              message: '删除 ' + that.selected[i].id + ' 成功',
+              type: 'success',
+            });
+          }).catch(err => {
+            if (err.response.status===401){
+              router.push({path: '/'});
+              Cookies.remove("token")
+              this.$message({
+                message: err.response.data,
+                type: 'error',
+              });
+            }
+          })
+        }
+        this.getAllDNS()
+      });
+
     },
     addDNS() {
       let that = this
@@ -307,14 +326,21 @@ export default {
             type: 'success',
           });
         }).catch(err => {
-          this.$message({
-            message: err.response.data,
-            type: 'error',
-          });
+          if (err.response.status===401){
+            router.push({path: '/'});
+            Cookies.remove("token")
+            this.$message({
+              message: err.response.data,
+              type: 'error',
+            });
+          }
         })
         this.dialogVisible = false
         that.desserts = []
-        that.newDNSData = {}
+        that.newDNSData = {
+          ttl:10,
+          query_type:"A"
+        }
         this.getAllDNS()
       }
 
@@ -347,10 +373,14 @@ export default {
           type: 'success',
         });
       }).catch(err => {
-        this.$message({
-          message: err.response.data,
-          type: 'error',
-        });
+        if (err.response.status===401){
+          router.push({path: '/'});
+          Cookies.remove("token")
+          this.$message({
+            message: err.response.data,
+            type: 'error',
+          });
+        }
       })
       that.selected=[]
       that.editVisible=false
@@ -373,10 +403,14 @@ export default {
         that.desserts = temp
         that.selected = []
       }).catch(err => {
-        this.$message({
-          message: err.response.data,
-          type: 'error',
-        });
+        if (err.response.status===401){
+          router.push({path: '/'});
+          Cookies.remove("token")
+          this.$message({
+            message: err.response.data,
+            type: 'error',
+          });
+        }
       })
     }
   },
