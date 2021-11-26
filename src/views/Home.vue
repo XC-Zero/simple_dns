@@ -7,22 +7,27 @@
             height="15vh"
             outlined
         >
+
           <v-list-item three-line>
+            <v-avatar size="150">
+              <img
+                  :src="require('/src/assets/logo.png')"
+                  alt="simple-dns"
+              >
+            </v-avatar>
             <v-list-item-content>
-              <div class="text-overline mb-4">
-                TE AMO
-              </div>
+              <!--              <div class="text-overline mb-4">-->
+              <!--                TE AMO-->
+              <!--              </div>-->
               <v-list-item-title class="text-h5 mb-1">
-                Simple-DNS
+                <div>Simple</div>
+                <div>DNS</div>
               </v-list-item-title>
+
               <v-list-item-subtitle>轻量级DNS</v-list-item-subtitle>
             </v-list-item-content>
 
-            <v-list-item-avatar
-                tile
-                size="80"
-                color="grey"
-            ></v-list-item-avatar>
+
           </v-list-item>
 
         </v-card>
@@ -51,7 +56,14 @@
 
       </el-aside>
       <el-container>
-        <el-header style="height: 100px">Header</el-header>
+        <el-header style="height: 70px;display: flex;flex-direction: row-reverse" >
+          <v-avatar width="300" height="70 " tile="false">
+            <img
+                :src="require('/src/assets/logo2.png')"
+                alt="simple-dns"
+            >
+          </v-avatar>
+        </el-header>
         <el-main>
 
           <transition :name="transitionName" style="width: 100%;height: 100%">
@@ -87,11 +99,11 @@ export default {
         text: 'DDNS',
         link: 'ddns'
       },
-      {
-        icon: 'mdi-send',
-        text: 'Send',
-        link: ''
-      },
+      // {
+      //   icon: 'mdi-send',
+      //   text: 'Send',
+      //   link: ''
+      // },
       {
         icon: 'mdi-cog-outline',
         text: '设置',
@@ -100,6 +112,7 @@ export default {
     ],
     model: 1,
   }),
+
   watch: {//使用watch 监听$router的变化
     $route(to, from) {
       //如果to索引大于from索引,判断为前进状态,反之则为后退状态
@@ -171,21 +184,21 @@ body > .el-container {
 
 .slide-right-enter {
   opacity: 0;
-  transform: translate3d( 0,-100%, 0);
+  transform: translate3d(0, -100%, 0);
 }
 
 .slide-right-leave-active {
   opacity: 0;
-  transform: translate3d( 0,100%, 0);
+  transform: translate3d(0, 100%, 0);
 }
 
 .slide-left-enter {
   opacity: 0;
-  transform: translate3d( 0,100%, 0);
+  transform: translate3d(0, 100%, 0);
 }
 
 .slide-left-leave-active {
   opacity: 0;
-  transform: translate3d( 0,-100%, 0);
+  transform: translate3d(0, -100%, 0);
 }
 </style>

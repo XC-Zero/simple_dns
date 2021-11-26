@@ -1,10 +1,10 @@
 <template>
-  <div v-loading="loading"  element-loading-spinner="el-icon-loading"
+  <div v-loading="loading" element-loading-spinner="el-icon-loading"
        element-loading-background="#ccffff90" :element-loading-text="loadingText" class="jss1">
     <div class="MuiPaper-root jss2 MuiPaper-elevation1 MuiPaper-rounded">
       <div class="jss6">
         <div class="jss48"><h5 class="jss49">Simple-DNS</h5>
-          <div class="jss50">请填写ScerteKey进行登录</div>
+          <div class="jss50">请填写SecreteKey进行登录</div>
         </div>
         <v-form
             style="width: 85%;"
@@ -12,9 +12,11 @@
             v-model="valid"
         >
           <v-text-field
-              v-model="password"
-              :rules="passwordRules"
-              label="ScerteKey"
+
+              @keydown.enter.prevent="login"
+              v-model="token"
+              :rules="tokenRules"
+              label="SecreteKey"
               type="password"
               required
           ></v-text-field>
@@ -40,76 +42,50 @@
 export default {
   name: "First",
   data: () => ({
-    loadingText:"登录中",
-    loading:false,
+    loadingText: "登录中",
+    loading: false,
     valid: true,
-    password: '',
-    passwordRules: [
+    token: '',
+    tokenRules: [
       v => !!v || 'key为空',
     ],
 
 
   }),
+  mounted() {
+    if (this.$Cookies.get("token")){
+      this.$router.push({path: '/home'});
+    }
+  },
   methods: {
-
-    login () {
-      let that=this
+    login() {
+      let that = this
       this.$refs.form.validate()
-      if (this.valid){
-        that.loading=true
-        // this.$http({
-        //   url:'/WebLogin',
-        //   method:'post',
-        //   headers:{
-        //     'Content-Type':'application/json',
-        //     'token':that.password
-        //   },
-        // })
-        //     .then((res)=>{
-        //       console.log(res)
-        //       let temp=res.data
-        //       that.loading=false
-        //       if(temp.err_code==403){
-        //         this.$message({
-        //           message: '用户不存在,请检查用户名！',
-        //           type: 'error',
-        //         });
-        //       }else if(temp.err_code==405){
-        //         this.$message({
-        //           message: '错咯！',
-        //           type: 'error',
-        //         });
-        //       }else if (temp.err_code==200){
-        //
-        //         that.$router.push({path:'/Home'});
-        //         that.$message({
-        //           message: '登录成功~',
-        //           type: 'success',
-        //         });
-        //       }
-        //       // eslint-disable-next-line no-unused-vars
-        //     }).catch((error)=>{
-        //   that.loading=false
-        //   this.$message({
-        //     message: '哦吼服务器炸了~',
-        //     type: 'error',
-        //   });
-        // })
-        that.$router.push({path:'/Home'});
-    }else {
-        this.$alert('ScerteKey 不正确', '出错了', {
-          confirmButtonText: '确定',
-          type: 'error',
-          center: true,
-          callback: () => {
-            this.$message({
-              type: 'error',
-              message: `登录失败！`
-            });
-          }
-        });
+      if (that.valid) {
+        that.loading = true
+        this.$http({
+          url: '/auth',
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': that.token
+          },
+        }).then(() => {
+                that.loading = false
+                that.$message({
+                  message: '登录成功~',
+                  type: 'success',
+                });
+          this.$router.push({path: '/home'});
+          this.$Cookies.set("token", that.token)
+        }).catch(e=> {
+          that.loading = false
+          this.$message({
+            message: e.response.data,
+            type: 'error',
+          });
+        })
       }
-
 
 
     },

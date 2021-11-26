@@ -5,26 +5,139 @@
         justify="space-around"
         style="margin-bottom: 20px;width: 24%;"
     >
-      <v-btn
-          tile
-          color="info"
-          @click="addDNS()"
+      <v-dialog
+          v-model="dialogVisible"
+          persistent
+          width="500"
       >
-        <v-icon left>
-          mdi-plus-thick
-        </v-icon>
-        添加
-      </v-btn>
-      <v-btn
-          tile
-          color="success"
-          @click="editDNS()"
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+              tile
+              color="info"
+              v-bind="attrs"
+              v-on="on"
+          >
+            <v-icon left>
+              mdi-plus-thick
+            </v-icon>
+            添加
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-title class="text-h5">
+            Create New DNS Record
+          </v-card-title>
+
+          <v-card-text>
+            <v-form
+                style="width: 100%;"
+                ref="form"
+                v-model="valid"
+            >
+              <v-text-field
+                  v-model="newDNSData.domain"
+                  :rules="domainRules"
+                  label="域名"
+                  required
+              ></v-text-field>
+              <v-text-field
+                  v-model="newDNSData.addr"
+                  :rules="addrRules"
+                  label="地址"
+                  required
+              ></v-text-field>
+              <v-select
+                  :items="selectTypeList"
+                  label="访问类型"
+                  v-model="newDNSData.query_type"
+                  :rules="query_typeRules"
+                  required
+              ></v-select>
+              <v-text-field
+                  @keydown.enter.prevent="addDNS"
+                  v-model="newDNSData.ttl"
+                  label="TTL"
+                  :rules="ttlRules"
+                  type="number"
+              ></v-text-field>
+            </v-form>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <span slot="footer" class="dialog-footer">
+               <v-btn color="error" style="margin-right: 15px" @click="dialogVisible=false">Cancel</v-btn>
+    <v-btn color="info" @click="addDNS">Submmit</v-btn>
+  </span>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog
+          v-model="editVisible"
+          persistent
+          width="500"
       >
-        <v-icon left>
-          mdi-pencil
-        </v-icon>
-        编辑
-      </v-btn>
+        <template v-slot:activator="{  attrss }">
+          <v-btn
+              tile
+              color="success"
+              v-bind="attrss"
+              @click="openEdit()"
+          >
+            <v-icon left>
+              mdi-pencil
+            </v-icon>
+            编辑
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-title class="text-h5">
+            Edit DNS Record
+          </v-card-title>
+
+          <v-card-text v-if="selected.length===1">
+            <v-form
+                style="width: 100%;"
+                ref="form"
+                v-model="valid"
+            >
+              <v-text-field
+                  v-model="selected[0].domain"
+                  :rules="domainRules"
+                  label="域名"
+                  required
+              ></v-text-field>
+              <v-text-field
+                  v-model="selected[0].addr"
+                  :rules="addrRules"
+                  label="地址"
+                  required
+              ></v-text-field>
+              <v-select
+                  :items="selectTypeList"
+                  label="访问类型"
+                  v-model="selected[0].query_type"
+                  :rules="query_typeRules"
+                  required
+              ></v-select>
+              <v-text-field
+                  @keydown.enter.prevent="editDNS"
+                  v-model="selected[0].ttl"
+                  label="TTL"
+                  :rules="ttlRules"
+                  type="number"
+              ></v-text-field>
+            </v-form>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <span slot="footer" class="dialog-footer">
+               <v-btn color="error" style="margin-right: 15px" @click="editVisible=false">Cancel</v-btn>
+    <v-btn color="info" @click="editDNS">Submmit</v-btn>
+  </span>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
       <v-btn
           tile
           color="error"
@@ -43,35 +156,233 @@
         :items-per-page="5"
         class="elevation-1"
         show-select
-        :single-select="false"
-        item-key="name"
+        item-key="id"
 
     ></v-data-table>
+
   </div>
 </template>
 
 <script>
 export default {
   name: "Dns",
-  data () {
+  data() {
     return {
+      //常量
+      typeList: {
+        1: "A",
+        2: "NS",
+        5: "CNAME",
+        6: "SOA",
+        12: "PTR",
+        15: "MX",
+        16: "TXT",
+        28: "AAAA",
+        33: "SRV",
+        41: "OPT"
+        ,
+      },
+      retypeList: {
+        "A": 1,
+        "NS": 2,
+        "CNAME": 5,
+        "SOA": 6,
+        "PTR": 12,
+        "MX": 15,
+        "TXT": 16,
+        "AAAA": 28,
+        "SRV": 33,
+        "OPT": 41,
+      },
+      selectTypeList: [
+        "A",
+        "NS",
+        "CNAME",
+        "SOA",
+        "PTR",
+        "MX",
+        "TXT",
+        "AAAA",
+        "SRV",
+        "OPT"
+        ,
+      ],
+
+      editVisible: false,
+      dialogVisible: false,
       selected: [],
       headers: [
         {
-          text: 'DNS列表',
+          text: "ID",
           align: 'start',
           sortable: false,
-          value: 'name',
+          value: 'id',
         },
-        { text: '源网址', value: 'calories' },
-        { text: '目的网址', value: 'fat' },
-        // { text: 'Carbs (g)', value: 'carbs' },
-        // { text: 'Protein (g)', value: 'protein' },
-        // { text: 'Iron (%)', value: 'iron' },
+        {text: '域名', value: 'domain'},
+        {text: '地址', value: 'addr'},
+        {text: '访问类型', value: 'query_type'},
+        {text: 'TTL', value: 'ttl'},
+
       ],
-      desserts: []
+      desserts: [
+        {
+          source: "www.baidu.com",
+          target: "8.8.8.8"
+        }
+      ],
+      valid: false,
+      domainRules: [
+        v => !!v || '域名为空',
+      ],
+      addrRules: [
+        v => !!v || '地址为空',
+      ],
+      query_typeRules: [
+        v => !!v || '访问类型为空',
+      ],
+      ttlRules: [
+        v => !!v || 'TTL为空',
+      ],
+      newDNSData: {},
     }
   },
+  methods: {
+
+    deleteDNS() {
+      this.$alert('确定删除吗？', '提示', {
+        confirmButtonText: 'Delete',
+        type: 'error',
+        cancelButtonText:'Cancel',
+        callback: action => {
+          this.$message({
+            type: 'info',
+            message: `action: ${ action }`
+          });
+        }
+      });
+      let that = this
+      for (let i = 0; i < this.selected.length; i++) {
+        this.$http({
+          url: '/api/del',
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': that.$Cookies.get("token")
+          },
+          data: {
+            "id": that.selected[i].id
+          }
+        }).then(() => {
+          this.$message({
+            message: '删除 ' + that.selected[i].id + ' 成功',
+            type: 'success',
+          });
+        }).catch(err => {
+          this.$message({
+            message: err.response.data,
+            type: 'error',
+          });
+        })
+      }
+      this.getAllDNS()
+    },
+    addDNS() {
+      let that = this
+      this.$refs.form.validate()
+
+      if (that.valid) {
+        that.newDNSData.query_type = that.retypeList[that.newDNSData.query_type]
+        that.newDNSData.ttl = Number(that.newDNSData.ttl)
+        this.$http({
+          url: '/api/add',
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': that.$Cookies.get("token")
+          },
+          data: that.newDNSData
+        }).then(() => {
+          this.$message({
+            message: "添加成功！",
+            type: 'success',
+          });
+        }).catch(err => {
+          this.$message({
+            message: err.response.data,
+            type: 'error',
+          });
+        })
+        this.dialogVisible = false
+        that.desserts = []
+        that.newDNSData = {}
+        this.getAllDNS()
+      }
+
+    },
+    openEdit() {
+      if (this.selected.length === 1) {
+        this.editVisible = true
+      } else {
+        this.$message({
+          message: "请选择一个进行更改",
+          type: 'error',
+        });
+      }
+    },
+    editDNS() {
+      let that = this
+      that.selected[0].query_type = that.retypeList[that.selected[0].query_type]
+      that.selected[0].ttl = Number(that.selected[0].ttl)
+      this.$http({
+        url: '/api/update',
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': that.$Cookies.get("token")
+        },
+        data:that.selected[0]
+      }).then(() => {
+        this.$message({
+          message: "修改成功！",
+          type: 'success',
+        });
+      }).catch(err => {
+        this.$message({
+          message: err.response.data,
+          type: 'error',
+        });
+      })
+      that.selected=[]
+      that.editVisible=false
+      this.getAllDNS()
+    },
+    getAllDNS() {
+      let that = this
+      this.$http({
+        url: '/api/list',
+        method: 'get',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': that.$Cookies.get("token")
+        },
+      }).then((res) => {
+        let temp = res.data
+        for (let i = 0; i < temp.length; i++) {
+          temp[i].query_type = that.typeList[temp[i].query_type]
+        }
+        that.desserts = temp
+        that.selected = []
+      }).catch(err => {
+        this.$message({
+          message: err.response.data,
+          type: 'error',
+        });
+      })
+    }
+  },
+  mounted() {
+    this.getAllDNS()
+  }
 }
 </script>
 
