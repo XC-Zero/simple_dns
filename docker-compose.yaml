@@ -1,7 +1,7 @@
 version: "3"
 services:
   simple-dns:
-    image: simple_dns_web:latest
+    image: dollarkiller/simple_dns_web:latest
     restart: always
     ports:
       - "9537:9537"
