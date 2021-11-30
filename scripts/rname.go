@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -38,8 +39,8 @@ func main() {
 
 	for {
 		select {
-		case <-time.After(time.Sec):
-
+		case <-time.After(time.Second * 100):
+			continue
 		}
 	}
 }
